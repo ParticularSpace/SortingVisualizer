@@ -6,13 +6,17 @@ public class Visualizer {
     public static void main(String[] args) {
         JFrame.setDefaultLookAndFeelDecorated(true);
         JFrame frame = new JFrame("Visualizer");
+        
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
         frame.setSize(1500, 1000);
+        
+
         VisualizerColumns panel = new VisualizerColumns();
+        panel.setBackground(Color.BLACK);
         frame.add(panel);
         frame.setVisible(true);
 
+        
         new Thread(panel::startSorting).start();
 
     }
