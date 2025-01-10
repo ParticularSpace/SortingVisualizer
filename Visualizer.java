@@ -10,32 +10,89 @@ public class Visualizer {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1100, 1000);
 
-        VisualizerColumns panel = new VisualizerColumns();
+        VisualizerColumns panel = new VisualizerColumns(100, 1100, 800); // Default number of columns and window size
         panel.setBackground(Color.BLACK);
-        frame.add(panel);
+
+        JPanel controlPanel = new JPanel();
+        controlPanel.setBackground(Color.DARK_GRAY);
+
+        JTextField columnField = new JTextField("100", 5); // Input field for column count
+        JButton startButton = new JButton("Start Sorting");
+        JLabel timerLabel = new JLabel("Time: 0.0 seconds");
+        timerLabel.setForeground(Color.WHITE);
+
+        startButton.addActionListener(e -> {
+            int numColumns;
+            try {
+                numColumns = Integer.parseInt(columnField.getText());
+                if ((numColumns <= 1) || (numColumns >= 1001)) throw new NumberFormatException();
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Please enter a valid integer (2 - 1000) for the number of columns.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            startButton.setEnabled(false); // Disable the start button
+
+            frame.remove(panel);
+            int frameWidth = 1100; 
+            int frameHeight = 800; 
+            VisualizerColumns newPanel = new VisualizerColumns(numColumns, frameWidth, frameHeight);
+            newPanel.setBackground(Color.BLACK);
+            newPanel.setTimerLabel(timerLabel);
+            frame.add(newPanel, BorderLayout.CENTER);
+            frame.revalidate();
+            frame.repaint();
+
+            new Thread(() -> {
+                newPanel.startSorting();
+                SwingUtilities.invokeLater(() -> startButton.setEnabled(true)); // enable the start button after sorting
+            }).start();
+        });
+
+        controlPanel.add(new JLabel("Columns: "));
+        controlPanel.add(columnField);
+        controlPanel.add(startButton);
+        controlPanel.add(timerLabel);
+
+        frame.setLayout(new BorderLayout());
+        frame.add(panel, BorderLayout.CENTER);
+        frame.add(controlPanel, BorderLayout.SOUTH);
         frame.setVisible(true);
 
-        new Thread(panel::startSorting).start();
+        panel.setTimerLabel(timerLabel);
     }
 }
 
 class VisualizerColumns extends JPanel {
     private int[] rectHeightArray;
-    private int rectWidth = 10;
+    private int rectWidth;
     private int movingIndex = -1;
+    private JLabel timerLabel;
+    private Timer updateTimer;
+    private long startTime;
 
-    public VisualizerColumns() {
-        int width = 1000;
-        int height = 800;
-        int numRects = width / rectWidth;
+    public VisualizerColumns(int numRects, int panelWidth, int panelHeight) {
+        rectWidth = panelWidth / numRects; 
         rectHeightArray = new int[numRects];
         Random random = new Random();
         int minHeight = 10;
-        int maxHeight = height - 10;
+        int maxHeight = panelHeight - 10;
 
         for (int i = 0; i < numRects; i++) {
             rectHeightArray[i] = random.nextInt(maxHeight - minHeight + 1) + minHeight;
         }
+
+
+        updateTimer = new Timer(100, e -> {
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            if (timerLabel != null) {
+            timerLabel.setText("Time: " + (elapsedTime / 1000.0) + " seconds");
+            }
+        });
+    }
+
+    public void setTimerLabel(JLabel timerLabel) {
+        this.timerLabel = timerLabel;
     }
 
     @Override
@@ -52,7 +109,7 @@ class VisualizerColumns extends JPanel {
             if (i == movingIndex) { // highlight if moving
                 g2d.setColor(Color.MAGENTA);
             } else {
-                g2d.setColor(Color.BLUE); // esle blue
+                g2d.setColor(Color.BLUE); // else blue
             }
             g2d.fillRect(x, 0, rectWidth, height);
             x += rectWidth;
@@ -60,33 +117,50 @@ class VisualizerColumns extends JPanel {
     }
 
     public void startSorting() {
-        bubbleSort(rectHeightArray);
+        startTime = System.currentTimeMillis();
+        updateTimer.start(); // Start updating the timer
+        bubbleSort(rectHeightArray); // <----------------------------------------------------------------- Call your sorting algorithm here
+        updateTimer.stop(); // Stop updating the timer
+        if (timerLabel != null) {
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            timerLabel.setText("Time: " + (elapsedTime / 1000.0) + " seconds");
+        }
+    }
+
+    // add new algo here if wanted
+    // NOTE: It should take an input array and sort it including the visualizations see below on how to include into your sortin algo
+    public void yourSort(int[] arr) {
+        // your sort algo here
     }
 
     public void bubbleSort(int[] arr) {
         int n = arr.length;
         for (int i = 0; i < n - 1; i++) {
             for (int j = 0; j < n - i - 1; j++) {
+                // movingIndex to identify the one we are moving... well duh lol
                 movingIndex = j; // purple the moving one
                 SwingUtilities.invokeLater(this::repaint); // ask to repaint for purple
 
+                // sleep requires try catch
                 try {
-                    Thread.sleep(5); // slow it down need catch for sleep with java
+                    Thread.sleep(1); // Introduce a delay for visualization
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
+                // The actual sorting logic
                 if (arr[j] > arr[j + 1]) {
                     // Swap arr[j+1] and arr[j]
                     int temp = arr[j];
                     arr[j] = arr[j + 1];
                     arr[j + 1] = temp;
 
+                    //mUST repaint after swapping
                     SwingUtilities.invokeLater(this::repaint); // Repaint after swapping
                 }
             }
         }
-        movingIndex = -1; // Reset the moving index after sorting
-        SwingUtilities.invokeLater(this::repaint); // Final repaint to clear the highlight
+        movingIndex = -1; // Reset the moving index after
+        SwingUtilities.invokeLater(this::repaint); // repaint to clear the highlight
     }
 }
