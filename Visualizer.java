@@ -122,12 +122,17 @@ class VisualizerColumns extends JPanel {
     public void startSorting() {
         startTime = System.currentTimeMillis();
         updateTimer.start(); // Start updating the timer
+
+        // <----------------------------------------------------------------- Call your sorting algorithm here
+
         // selectionSort(rectHeightArray);
-        // <----------------------------------------------------------------- Call your
-        // sorting algorithm here
         // bubbleSort(rectHeightArray);
         quickSort(rectHeightArray, 0, rectHeightArray.length - 1);
         // radixSort(rectHeightArray);
+
+        // ----------------------------------------------------------------->
+
+
         updateTimer.stop(); // Stop updating the timer
         if (timerLabel != null) {
             long elapsedTime = System.currentTimeMillis() - startTime;
@@ -135,14 +140,19 @@ class VisualizerColumns extends JPanel {
         }
     }
 
-    // add new algo here if wanted
+    // add new algo here if wanted <---------------------------------------------------------------
+
+
     // NOTE: It should take an input array and sort it including the visualizations
     // see below on how to include into your sortin algo
     public void yourSort(int[] arr) {
         // your sort algo here
     }
 
-    // Searching for the smallest element in the unsorted part
+
+    // <-----------------------------------------------------------------------------------------------
+
+
     public void selectionSort(int[] arr) {
         int n = arr.length;
         for (int i = 0; i < n - 1; i++) {
@@ -173,8 +183,6 @@ class VisualizerColumns extends JPanel {
         SwingUtilities.invokeLater(this::repaint);
     }
 
-    // bubble sort it looks for the largest element in the unsorted part and moves
-    // it to the end
     public void bubbleSort(int[] arr) {
         int n = arr.length;
         for (int i = 0; i < n - 1; i++) {
@@ -206,7 +214,6 @@ class VisualizerColumns extends JPanel {
         SwingUtilities.invokeLater(this::repaint); // repaint to clear the highlight
     }
 
-    // Quick Sort Algorithm
     public void quickSort(int[] arr, int low, int high) {
         if (low < high) {
             // partitioning index (pi)
@@ -218,7 +225,6 @@ class VisualizerColumns extends JPanel {
         }
     }
 
-    // partition the array for quick sort
     private int partition(int[] arr, int low, int high) {
         int pivot = arr[high];
         int i = (low - 1);
@@ -251,7 +257,6 @@ class VisualizerColumns extends JPanel {
         return i + 1;
     }
 
-    // Radix Sort Algorithm
     public void radixSort(int[] arr) {
         // Find the maximum number to know the number of digits
         int max = Arrays.stream(arr).max().getAsInt();
@@ -262,7 +267,6 @@ class VisualizerColumns extends JPanel {
         }
     }
 
-    // Counting Sort used by Radix Sort
     private void countingSort(int[] arr, int exp) {
         int n = arr.length;
         int[] output = new int[n]; // Output array
@@ -302,5 +306,4 @@ class VisualizerColumns extends JPanel {
         // Repaint after sorting for the current digit
         SwingUtilities.invokeLater(this::repaint);
     }
-
 }
