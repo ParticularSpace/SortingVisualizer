@@ -25,17 +25,20 @@ public class Visualizer {
             int numColumns;
             try {
                 numColumns = Integer.parseInt(columnField.getText());
-                if ((numColumns <= 1) || (numColumns >= 1001)) throw new NumberFormatException();
+                if ((numColumns <= 1) || (numColumns >= 1001))
+                    throw new NumberFormatException();
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(frame, "Please enter a valid integer (2 - 1000) for the number of columns.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(frame,
+                        "Please enter a valid integer (2 - 1000) for the number of columns.", "Invalid Input",
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             startButton.setEnabled(false); // Disable the start button
 
             frame.remove(panel);
-            int frameWidth = 1100; 
-            int frameHeight = 800; 
+            int frameWidth = 1100;
+            int frameHeight = 800;
             VisualizerColumns newPanel = new VisualizerColumns(numColumns, frameWidth, frameHeight);
             newPanel.setBackground(Color.BLACK);
             newPanel.setTimerLabel(timerLabel);
@@ -72,7 +75,7 @@ class VisualizerColumns extends JPanel {
     private long startTime;
 
     public VisualizerColumns(int numRects, int panelWidth, int panelHeight) {
-        rectWidth = panelWidth / numRects; 
+        rectWidth = panelWidth / numRects;
         rectHeightArray = new int[numRects];
         Random random = new Random();
         int minHeight = 10;
@@ -82,11 +85,10 @@ class VisualizerColumns extends JPanel {
             rectHeightArray[i] = random.nextInt(maxHeight - minHeight + 1) + minHeight;
         }
 
-
         updateTimer = new Timer(100, e -> {
             long elapsedTime = System.currentTimeMillis() - startTime;
             if (timerLabel != null) {
-            timerLabel.setText("Time: " + (elapsedTime / 1000.0) + " seconds");
+                timerLabel.setText("Time: " + (elapsedTime / 1000.0) + " seconds");
             }
         });
     }
@@ -119,7 +121,10 @@ class VisualizerColumns extends JPanel {
     public void startSorting() {
         startTime = System.currentTimeMillis();
         updateTimer.start(); // Start updating the timer
-        bubbleSort(rectHeightArray); // <----------------------------------------------------------------- Call your sorting algorithm here
+        // selectionSort(rectHeightArray); //
+        // <----------------------------------------------------------------- Call your
+        // sorting algorithm here
+        quickSort(rectHeightArray, 0, rectHeightArray.length - 1);
         updateTimer.stop(); // Stop updating the timer
         if (timerLabel != null) {
             long elapsedTime = System.currentTimeMillis() - startTime;
@@ -128,11 +133,45 @@ class VisualizerColumns extends JPanel {
     }
 
     // add new algo here if wanted
-    // NOTE: It should take an input array and sort it including the visualizations see below on how to include into your sortin algo
+    // NOTE: It should take an input array and sort it including the visualizations
+    // see below on how to include into your sortin algo
     public void yourSort(int[] arr) {
         // your sort algo here
     }
 
+    // Searching for the smallest element in the unsorted part
+    public void selectionSort(int[] arr) {
+        int n = arr.length;
+        for (int i = 0; i < n - 1; i++) {
+            int minIdx = i;
+            for (int j = i + 1; j < n; j++) {
+                movingIndex = j;
+                SwingUtilities.invokeLater(this::repaint);
+
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                if (arr[j] < arr[minIdx]) {
+                    minIdx = j;
+                }
+            }
+
+            // Swap the found minimum element with the first element
+            int temp = arr[minIdx];
+            arr[minIdx] = arr[i];
+            arr[i] = temp;
+
+            SwingUtilities.invokeLater(this::repaint);
+        }
+        movingIndex = -1;
+        SwingUtilities.invokeLater(this::repaint);
+    }
+
+    // bubble sort it looks for the largest element in the unsorted part and moves
+    // it to the end
     public void bubbleSort(int[] arr) {
         int n = arr.length;
         for (int i = 0; i < n - 1; i++) {
@@ -155,7 +194,7 @@ class VisualizerColumns extends JPanel {
                     arr[j] = arr[j + 1];
                     arr[j + 1] = temp;
 
-                    //mUST repaint after swapping
+                    // mUST repaint after swapping
                     SwingUtilities.invokeLater(this::repaint); // Repaint after swapping
                 }
             }
@@ -163,4 +202,50 @@ class VisualizerColumns extends JPanel {
         movingIndex = -1; // Reset the moving index after
         SwingUtilities.invokeLater(this::repaint); // repaint to clear the highlight
     }
+
+    // Quick Sort Algorithm
+    public void quickSort(int[] arr, int low, int high) {
+        if (low < high) {
+            // partitioning index (pi)
+            int pi = partition(arr, low, high);
+
+            // Sort elements before and after partition
+            quickSort(arr, low, pi - 1);
+            quickSort(arr, pi + 1, high);
+        }
+    }
+
+    // partition the array for quick sort
+    private int partition(int[] arr, int low, int high) {
+        int pivot = arr[high];
+        int i = (low - 1);
+
+        for (int j = low; j < high; j++) {
+            movingIndex = j;
+            SwingUtilities.invokeLater(this::repaint);
+
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            if (arr[j] < pivot) {
+                i++;
+                int temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+        }
+
+        int temp = arr[i + 1];
+        arr[i + 1] = arr[high];
+        arr[high] = temp;
+
+        movingIndex = -1; // Reset moving index
+        SwingUtilities.invokeLater(this::repaint);
+
+        return i + 1;
+    }
+
 }
