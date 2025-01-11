@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.Random;
+import java.util.Arrays;
 
 public class Visualizer {
     public static void main(String[] args) {
@@ -25,7 +26,7 @@ public class Visualizer {
             int numColumns;
             try {
                 numColumns = Integer.parseInt(columnField.getText());
-                if ((numColumns <= 1) || (numColumns >= 1001))
+                if ((numColumns <= 1) || (numColumns >= 2001))
                     throw new NumberFormatException();
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(frame,
@@ -75,7 +76,7 @@ class VisualizerColumns extends JPanel {
     private long startTime;
 
     public VisualizerColumns(int numRects, int panelWidth, int panelHeight) {
-        rectWidth = panelWidth / numRects;
+        rectWidth = Math.max(1, panelWidth / numRects);
         rectHeightArray = new int[numRects];
         Random random = new Random();
         int minHeight = 10;
@@ -121,10 +122,12 @@ class VisualizerColumns extends JPanel {
     public void startSorting() {
         startTime = System.currentTimeMillis();
         updateTimer.start(); // Start updating the timer
-        // selectionSort(rectHeightArray); //
+        // selectionSort(rectHeightArray);
         // <----------------------------------------------------------------- Call your
         // sorting algorithm here
+        // bubbleSort(rectHeightArray);
         quickSort(rectHeightArray, 0, rectHeightArray.length - 1);
+        // radixSort(rectHeightArray);
         updateTimer.stop(); // Stop updating the timer
         if (timerLabel != null) {
             long elapsedTime = System.currentTimeMillis() - startTime;
@@ -246,6 +249,58 @@ class VisualizerColumns extends JPanel {
         SwingUtilities.invokeLater(this::repaint);
 
         return i + 1;
+    }
+
+    // Radix Sort Algorithm
+    public void radixSort(int[] arr) {
+        // Find the maximum number to know the number of digits
+        int max = Arrays.stream(arr).max().getAsInt();
+
+        // Perform counting sort for every digit (starting from least significant)
+        for (int exp = 1; max / exp > 0; exp *= 10) {
+            countingSort(arr, exp);
+        }
+    }
+
+    // Counting Sort used by Radix Sort
+    private void countingSort(int[] arr, int exp) {
+        int n = arr.length;
+        int[] output = new int[n]; // Output array
+        int[] count = new int[10]; // Count array for digits (0-9)
+
+        // Count occurrences of each digit
+        for (int i = 0; i < n; i++) {
+            int digit = (arr[i] / exp) % 10;
+            count[digit]++;
+        }
+
+        // Update count array to store actual positions
+        for (int i = 1; i < 10; i++) {
+            count[i] += count[i - 1];
+        }
+
+        // Build the output array by placing elements in their correct position
+        for (int i = n - 1; i >= 0; i--) {
+            int digit = (arr[i] / exp) % 10;
+            output[count[digit] - 1] = arr[i];
+            count[digit]--;
+
+            movingIndex = i; // Highlight the current column being processed
+            SwingUtilities.invokeLater(this::repaint);
+
+            // Visualization delay
+            try {
+                Thread.sleep(1); // Adjust delay as needed
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Copy the sorted elements back into the original array
+        System.arraycopy(output, 0, arr, 0, n);
+
+        // Repaint after sorting for the current digit
+        SwingUtilities.invokeLater(this::repaint);
     }
 
 }
